@@ -864,7 +864,7 @@ func (e *Executor) OpenSSL(ctx context.Context, req *models.OpenSSLRequest) (*mo
 		}
 		args = append(args, "-connect", fmt.Sprintf("%s:%d", sanitizeArg(req.Host), port))
 		args = append(args, "-servername", sanitizeArg(req.Host))
-		args = append(args, "</dev/null")
+		args = append(args, "-brief") // Use brief output instead of redirecting stdin
 	}
 
 	return e.Execute(ctx, "openssl", args...)
@@ -1036,26 +1036,36 @@ func (e *Executor) File(ctx context.Context, req *models.FileRequest) (*models.T
 
 // Jq executes a jq JSON processing command
 func (e *Executor) Jq(ctx context.Context, req *models.JqRequest) (*models.ToolResponse, error) {
+	ctx, cancel := context.WithTimeout(ctx, e.timeout)
+	defer cancel()
+
+	// Use jq directly with input from stdin via a string
 	args := []string{sanitizeArg(req.Filter)}
-	cmd := exec.Command("echo", req.Input)
-	jqCmd := exec.Command("jq", args...)
+	cmd := exec.CommandContext(ctx, "jq", args...)
+	cmd.Stdin = strings.NewReader(req.Input)
 
-	pipe, _ := cmd.StdoutPipe()
-	jqCmd.Stdin = pipe
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
 
-	var out bytes.Buffer
-	jqCmd.Stdout = &out
+	err := cmd.Run()
 
-	cmd.Start()
-	jqCmd.Start()
-	cmd.Wait()
-	jqCmd.Wait()
-
-	return &models.ToolResponse{
+	response := &models.ToolResponse{
 		Tool:    "jq",
-		Success: true,
-		Output:  out.String(),
-	}, nil
+		Success: err == nil,
+		Output:  stdout.String(),
+	}
+
+	if err != nil {
+		response.Error = stderr.String()
+		if exitError, ok := err.(*exec.ExitError); ok {
+			response.ExitCode = exitError.ExitCode()
+		} else {
+			response.ExitCode = -1
+		}
+	}
+
+	return response, nil
 }
 
 // Whois executes a whois lookup
