@@ -204,7 +204,7 @@ case "\$MODE" in
         echo "Starting Netshoot with Web UI..."
         echo "  - Web UI: http://localhost:80"
         echo "  - API: http://localhost:8080"
-        exec /usr/bin/supervisord -c /etc/supervisord.conf
+        exec /usr/bin/supervisord -c /etc/supervisor.d/netshoot.ini
         ;;
     api)
         echo "Starting Netshoot API server only..."
