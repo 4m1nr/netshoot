@@ -1,12 +1,20 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-get_latest_release() {
-  curl --silent "https://api.github.com/repos/$1/releases/latest" | # Get latest release from GitHub api
-    grep '"tag_name":' |                                            # Get tag line
-    sed -E 's/.*"([^"]+)".*/\1/'                                    # Pluck JSON value
-}
+# Fallback versions if GitHub API is unavailable
+CTOP_FALLBACK_VERSION="0.7.7"
+CALICO_FALLBACK_VERSION="v3.31.2"
+TERMSHARK_FALLBACK_VERSION="2.4.0"
+GRPCURL_FALLBACK_VERSION="1.9.3"
+FORTIO_FALLBACK_VERSION="1.73.0"
 
+get_latest_release() {
+  local result
+  result=$(curl --silent --fail "https://api.github.com/repos/$1/releases/latest" 2>/dev/null | \
+    grep '"tag_name":' | \
+    sed -E 's/.*"([^"]+)".*/\1/' || echo "")
+  echo "$result"
+}
 
 ARCH=$(uname -m)
 case $ARCH in
@@ -20,12 +28,20 @@ esac
 
 get_ctop() {
   VERSION=$(get_latest_release bcicen/ctop | sed -e 's/^v//')
+  if [ -z "$VERSION" ]; then
+    echo "Warning: Could not fetch latest ctop version, using fallback ${CTOP_FALLBACK_VERSION}"
+    VERSION="$CTOP_FALLBACK_VERSION"
+  fi
   LINK="https://github.com/bcicen/ctop/releases/download/v${VERSION}/ctop-${VERSION}-linux-${ARCH}"
   wget "$LINK" -O /tmp/ctop && chmod +x /tmp/ctop
 }
 
 get_calicoctl() {
   VERSION=$(get_latest_release projectcalico/calico)
+  if [ -z "$VERSION" ]; then
+    echo "Warning: Could not fetch latest calico version, using fallback ${CALICO_FALLBACK_VERSION}"
+    VERSION="$CALICO_FALLBACK_VERSION"
+  fi
   LINK="https://github.com/projectcalico/calico/releases/download/${VERSION}/calicoctl-linux-${ARCH}"
   wget "$LINK" -O /tmp/calicoctl && chmod +x /tmp/calicoctl
 }
@@ -34,6 +50,10 @@ get_termshark() {
   case "$ARCH" in
     *)
       VERSION=$(get_latest_release gcla/termshark | sed -e 's/^v//')
+      if [ -z "$VERSION" ]; then
+        echo "Warning: Could not fetch latest termshark version, using fallback ${TERMSHARK_FALLBACK_VERSION}"
+        VERSION="$TERMSHARK_FALLBACK_VERSION"
+      fi
       if [ "$ARCH" == "amd64" ]; then
         TERM_ARCH=x64
       else
@@ -55,6 +75,10 @@ get_grpcurl() {
     TERM_ARCH="$ARCH"
   fi
   VERSION=$(get_latest_release fullstorydev/grpcurl | sed -e 's/^v//')
+  if [ -z "$VERSION" ]; then
+    echo "Warning: Could not fetch latest grpcurl version, using fallback ${GRPCURL_FALLBACK_VERSION}"
+    VERSION="$GRPCURL_FALLBACK_VERSION"
+  fi
   LINK="https://github.com/fullstorydev/grpcurl/releases/download/v${VERSION}/grpcurl_${VERSION}_linux_${TERM_ARCH}.tar.gz"
   wget "$LINK" -O /tmp/grpcurl.tar.gz  && \
   tar --no-same-owner -zxvf /tmp/grpcurl.tar.gz && \
@@ -70,6 +94,10 @@ get_fortio() {
     TERM_ARCH="$ARCH"
   fi
   VERSION=$(get_latest_release fortio/fortio | sed -e 's/^v//')
+  if [ -z "$VERSION" ]; then
+    echo "Warning: Could not fetch latest fortio version, using fallback ${FORTIO_FALLBACK_VERSION}"
+    VERSION="$FORTIO_FALLBACK_VERSION"
+  fi
   LINK="https://github.com/fortio/fortio/releases/download/v${VERSION}/fortio-linux_${ARCH}-${VERSION}.tgz"
   wget "$LINK" -O /tmp/fortio.tgz  && \
   tar -zxvf /tmp/fortio.tgz && \
