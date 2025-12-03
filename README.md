@@ -354,7 +354,7 @@ $ fortio load http://www.google.com
 
 ## Netshoot API Backend & Web UI
 
-Netshoot now includes a Go backend API and a React Native web/mobile UI for interacting with all the networking tools through a user-friendly interface.
+Netshoot now includes a Go backend API and a React Native web/mobile UI for interacting with all the networking tools through a user-friendly interface. **Everything is bundled in a single Docker image.**
 
 ### Features
 
@@ -363,14 +363,41 @@ Netshoot now includes a Go backend API and a React Native web/mobile UI for inte
 - **Real-time Output**: Execute tools and see results instantly
 - **Rate Limiting**: Built-in rate limiting for abuse prevention
 - **CORS Support**: Works with any frontend application
-- **Docker Ready**: Full Docker Compose setup included
+- **Single Image**: Network tools + Backend API + Web UI all in one image
 
 ### Quick Start
 
-#### Using Docker Compose
+#### Using the Full Image (Recommended)
 
 ```bash
-# Start both backend and frontend
+# Run with Web UI + API (network tools + backend + UI)
+docker run -d -p 80:80 -p 8080:8080 --cap-add NET_ADMIN --cap-add NET_RAW nicolaka/netshoot web
+
+# Access the web UI at http://localhost
+# API is available at http://localhost:8080
+```
+
+#### Run Modes
+
+The netshoot image supports multiple run modes:
+
+```bash
+# Shell mode (default) - original netshoot behavior
+docker run -it --net container:<container_name> nicolaka/netshoot
+# or explicitly:
+docker run -it --net container:<container_name> nicolaka/netshoot shell
+
+# Web mode - run with Web UI + API
+docker run -d -p 80:80 -p 8080:8080 --cap-add NET_ADMIN --cap-add NET_RAW nicolaka/netshoot web
+
+# API mode - run API server only (no UI)
+docker run -d -p 8080:8080 --cap-add NET_ADMIN --cap-add NET_RAW nicolaka/netshoot api
+```
+
+#### Using Docker Compose (Alternative)
+
+```bash
+# Start with docker-compose for development/separate services
 docker-compose up -d
 
 # Access the web UI at http://localhost:3000
