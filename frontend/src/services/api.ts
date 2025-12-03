@@ -11,7 +11,8 @@ function cleanRequestBody(obj: Record<string, any>): Record<string, any> {
       continue;
     }
     // Recursively clean nested objects (but not arrays)
-    if (typeof value === 'object' && !Array.isArray(value)) {
+    // Note: typeof null === 'object' in JS, but we already skip null above
+    if (typeof value === 'object' && !Array.isArray(value) && value !== null) {
       const nestedCleaned = cleanRequestBody(value);
       if (Object.keys(nestedCleaned).length > 0) {
         cleaned[key] = nestedCleaned;
