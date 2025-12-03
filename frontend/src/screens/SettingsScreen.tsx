@@ -12,7 +12,7 @@ import {
 import apiService from '../services/api';
 
 export const SettingsScreen: React.FC = () => {
-  const [apiUrl, setApiUrl] = useState('http://localhost:8080');
+  const [apiUrl, setApiUrl] = useState(apiService.getBaseUrl());
   const [isConnected, setIsConnected] = useState(false);
   const [checking, setChecking] = useState(false);
 
