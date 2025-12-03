@@ -352,6 +352,117 @@ Fortio is a fast, small, reusable, embeddable go library as well as a command li
 $ fortio load http://www.google.com
 ```
 
+## Netshoot API Backend & Web UI
+
+Netshoot now includes a Go backend API and a React Native web/mobile UI for interacting with all the networking tools through a user-friendly interface.
+
+### Features
+
+- **Full API Coverage**: REST API endpoints for all 50+ networking tools
+- **React Native UI**: Cross-platform mobile and web interface
+- **Real-time Output**: Execute tools and see results instantly
+- **Rate Limiting**: Built-in rate limiting for abuse prevention
+- **CORS Support**: Works with any frontend application
+- **Docker Ready**: Full Docker Compose setup included
+
+### Quick Start
+
+#### Using Docker Compose
+
+```bash
+# Start both backend and frontend
+docker-compose up -d
+
+# Access the web UI at http://localhost:3000
+# API is available at http://localhost:8080
+```
+
+#### Running Backend Locally
+
+```bash
+cd backend
+go mod tidy
+go run ./cmd/server/
+
+# API available at http://localhost:8080
+```
+
+#### Running Frontend Locally
+
+```bash
+cd frontend
+npm install
+npx expo start --web
+
+# Web UI available at http://localhost:8081
+```
+
+### API Endpoints
+
+The backend provides comprehensive API endpoints for all netshoot tools:
+
+| Category | Endpoints |
+|----------|-----------|
+| **Diagnostics** | `/api/ping`, `/api/fping`, `/api/mtr`, `/api/traceroute`, `/api/tcptraceroute`, `/api/trippy` |
+| **DNS** | `/api/dns`, `/api/dig`, `/api/nslookup`, `/api/host` |
+| **Scanning** | `/api/nmap`, `/api/nping`, `/api/netcat` |
+| **HTTP/Web** | `/api/curl`, `/api/httpie`, `/api/ab`, `/api/fortio`, `/api/websocat`, `/api/grpcurl` |
+| **Capture** | `/api/tcpdump`, `/api/tshark`, `/api/ngrep` |
+| **Performance** | `/api/iperf`, `/api/iperf3`, `/api/speedtest` |
+| **Config** | `/api/ip/route`, `/api/ip/addr`, `/api/ip/link`, `/api/ip/neigh`, `/api/netstat`, `/api/ss`, `/api/ethtool`, `/api/bridge` |
+| **Firewall** | `/api/iptables`, `/api/nftables`, `/api/ipset`, `/api/conntrack` |
+| **SSL/TLS** | `/api/openssl` |
+| **SNMP** | `/api/snmpget`, `/api/snmpwalk` |
+| **DHCP** | `/api/dhcping` |
+| **Email** | `/api/swaks` |
+| **Container** | `/api/calicoctl` |
+| **Monitoring** | `/api/iftop` |
+| **Load Balancing** | `/api/ipvsadm` |
+| **Utility** | `/api/socat`, `/api/file`, `/api/jq`, `/api/whois`, `/api/ipinfo` |
+| **Routing** | `/api/bird` |
+| **SSH** | `/api/ssh-keyscan` |
+| **Generic** | `/api/exec` |
+
+### API Usage Examples
+
+```bash
+# Health check
+curl http://localhost:8080/api/health
+
+# List all available tools
+curl http://localhost:8080/api/tools
+
+# Ping a host
+curl -X POST http://localhost:8080/api/ping \
+  -H "Content-Type: application/json" \
+  -d '{"host": "google.com", "count": 4}'
+
+# DNS lookup
+curl -X POST http://localhost:8080/api/dns \
+  -H "Content-Type: application/json" \
+  -d '{"host": "google.com", "type": "MX"}'
+
+# Port scan
+curl -X POST http://localhost:8080/api/nmap \
+  -H "Content-Type: application/json" \
+  -d '{"host": "scanme.nmap.org", "ports": "22,80,443"}'
+
+# Check network stats
+curl -X POST http://localhost:8080/api/netstat \
+  -H "Content-Type: application/json" \
+  -d '{"listening": true, "tcp": true, "numeric": true}'
+
+# Get public IP info
+curl http://localhost:8080/api/ipinfo
+```
+
+### Security Considerations
+
+- The API includes command sanitization to prevent injection attacks
+- Rate limiting is enabled by default (100 requests/minute per IP)
+- Only whitelisted commands can be executed via the generic `/api/exec` endpoint
+- Timeouts are enforced on all tool executions
+
 ## Contribution
 
 Feel free to contribute networking troubleshooting tools and use-cases by opening PRs. If you would like to add any package, please follow these steps:
@@ -362,5 +473,4 @@ Feel free to contribute networking troubleshooting tools and use-cases by openin
 * If you're building the tool from source, make sure you leverage the multi-stage build process and update the `build/fetch_binaries.sh` script 
 * Update the README's list of included packages AND include a section on how to use the tool
 * If the tool you're adding supports multi-platform, please make sure you highlight that.
-
 
