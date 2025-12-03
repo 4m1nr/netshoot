@@ -1,7 +1,7 @@
 # ==========================================
 # Stage 1: Fetch binary tools
 # ==========================================
-FROM debian:stable-slim as fetcher
+FROM debian:stable-slim AS fetcher
 COPY build/fetch_binaries.sh /tmp/fetch_binaries.sh
 
 RUN apt-get update && apt-get install -y \
@@ -13,7 +13,7 @@ RUN /tmp/fetch_binaries.sh
 # ==========================================
 # Stage 2: Build Go backend
 # ==========================================
-FROM golang:1.21-alpine AS backend-builder
+FROM golang:1.24-alpine AS backend-builder
 
 WORKDIR /app
 
@@ -131,7 +131,7 @@ COPY --from=frontend-builder /app/dist /var/www/html
 # Setting User and Home
 USER root
 WORKDIR /root
-ENV HOSTNAME netshoot
+ENV HOSTNAME=netshoot
 
 # ZSH Themes
 RUN curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh | sh
