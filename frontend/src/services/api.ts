@@ -2,6 +2,28 @@ import { ToolResponse, ToolInfo, HealthResponse } from '../types';
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || '';
 
+// Helper function to clean request body by removing empty/undefined/null values
+function cleanRequestBody(obj: Record<string, any>): Record<string, any> {
+  const cleaned: Record<string, any> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    // Skip undefined, null, and empty strings
+    if (value === undefined || value === null || value === '') {
+      continue;
+    }
+    // Recursively clean nested objects (but not arrays)
+    // Note: typeof null === 'object' in JS, but we already skip null above
+    if (typeof value === 'object' && !Array.isArray(value) && value !== null) {
+      const nestedCleaned = cleanRequestBody(value);
+      if (Object.keys(nestedCleaned).length > 0) {
+        cleaned[key] = nestedCleaned;
+      }
+    } else {
+      cleaned[key] = value;
+    }
+  }
+  return cleaned;
+}
+
 class ApiService {
   private baseUrl: string;
 
@@ -20,11 +42,23 @@ class ApiService {
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
     
+    // Clean the request body if present
+    let cleanedOptions = { ...options };
+    if (options.body && typeof options.body === 'string') {
+      try {
+        const parsed = JSON.parse(options.body);
+        const cleaned = cleanRequestBody(parsed);
+        cleanedOptions.body = JSON.stringify(cleaned);
+      } catch {
+        // If parsing fails, use original body
+      }
+    }
+    
     const response = await fetch(url, {
-      ...options,
+      ...cleanedOptions,
       headers: {
         'Content-Type': 'application/json',
-        ...options.headers,
+        ...cleanedOptions.headers,
       },
     });
 
