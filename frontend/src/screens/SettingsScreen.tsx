@@ -46,7 +46,7 @@ export const SettingsScreen: React.FC = () => {
             style={styles.input}
             value={apiUrl}
             onChangeText={setApiUrl}
-            placeholder="http://localhost:8080"
+            placeholder="Leave empty for same-origin API"
             placeholderTextColor="#666"
             autoCapitalize="none"
             autoCorrect={false}

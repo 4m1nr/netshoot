@@ -394,14 +394,18 @@ docker run -d -p 80:80 -p 8080:8080 --cap-add NET_ADMIN --cap-add NET_RAW nicola
 docker run -d -p 8080:8080 --cap-add NET_ADMIN --cap-add NET_RAW nicolaka/netshoot api
 ```
 
-#### Using Docker Compose (Alternative)
+#### Using Docker Compose (Production Mode)
 
 ```bash
-# Start with docker-compose for development/separate services
+# Start with docker-compose
 docker-compose up -d
 
 # Access the web UI at http://localhost:3000
 # API is available at http://localhost:8080
+
+# To access from other devices on your local network,
+# use your machine's IP address instead of localhost:
+# http://<your-ip>:3000
 ```
 
 #### Running Backend Locally

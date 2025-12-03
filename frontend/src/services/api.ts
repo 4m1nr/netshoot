@@ -1,6 +1,6 @@
 import { ToolResponse, ToolInfo, HealthResponse } from '../types';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8080';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || '';
 
 class ApiService {
   private baseUrl: string;
